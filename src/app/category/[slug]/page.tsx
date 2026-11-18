@@ -76,20 +76,33 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   // Collect category IDs (parent + all child subcategory IDs)
   const catIds = [category.id, ...subcategories.map((s) => s.id)];
 
+  // All categories map for accurate name resolution on article cards
+  const allKnownCats = await db.query.categories.findMany();
+  const catLookup = new Map<number, { name: string; slug: string }>();
+  for (const c of allKnownCats) {
+    catLookup.set(c.id, { name: c.name, slug: c.slug });
+  }
+
   const articlesRaw = await db.query.articles.findMany({
     where: and(
       eq(schema.articles.status, "Published"),
       inArray(schema.articles.primaryCategoryId, catIds)
     ),
     orderBy: [desc(schema.articles.publishedAt)],
-    limit: 24,
+    limit: 30,
   });
 
-  const articles = articlesRaw.map((a) => ({
-    ...a,
-    categoryName: category.name,
-    categorySlug: category.slug,
-  }));
+  const articles = articlesRaw.map((a) => {
+    const specificCat = catLookup.get(a.primaryCategoryId) || {
+      name: category.name,
+      slug: category.slug,
+    };
+    return {
+      ...a,
+      categoryName: specificCat.name,
+      categorySlug: specificCat.slug,
+    };
+  });
 
   const leadArticle = articles[0] || null;
   const restArticles = articles.slice(1);

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Check, X, Clock, Archive, ExternalLink, Edit, Eye, Filter } from "lucide-react";
+import { Check, X, Clock, Archive, ExternalLink, Edit, Eye, Filter, Star } from "lucide-react";
 
 interface ArticlesTableClientProps {
   initialArticles: any[];
@@ -30,6 +30,26 @@ export const ArticlesTableClient: React.FC<ArticlesTableClientProps> = ({
       if (res.ok) {
         setArticles((prev) =>
           prev.map((a) => (a.id === articleId ? { ...a, status: newStatus } : a))
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleToggleFeatured = async (articleId: number, currentFeatured: boolean) => {
+    setUpdatingId(articleId);
+    try {
+      const res = await fetch("/api/admin/articles/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleId, isFeatured: !currentFeatured }),
+      });
+      if (res.ok) {
+        setArticles((prev) =>
+          prev.map((a) => (a.id === articleId ? { ...a, isFeatured: !currentFeatured } : a))
         );
       }
     } catch (e) {
@@ -135,6 +155,19 @@ export const ArticlesTableClient: React.FC<ArticlesTableClientProps> = ({
 
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleToggleFeatured(art.id, Boolean(art.isFeatured))}
+                          disabled={updatingId === art.id}
+                          className={`p-1.5 rounded transition-colors ${
+                            art.isFeatured
+                              ? "text-amber-500 bg-amber-50 hover:bg-amber-100"
+                              : "text-slate-300 hover:text-amber-500 hover:bg-slate-100"
+                          }`}
+                          title={art.isFeatured ? "Unfeature from Hero" : "Feature on General News Hero"}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${art.isFeatured ? "fill-amber-500" : ""}`} />
+                        </button>
+
                         {art.status !== "Published" ? (
                           <button
                             onClick={() => handleStatusChange(art.id, "Published")}

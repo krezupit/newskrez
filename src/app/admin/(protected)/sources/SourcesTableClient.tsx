@@ -23,9 +23,16 @@ export const SourcesTableClient: React.FC<SourcesTableClientProps> = ({
 }) => {
   const [sources, setSources] = useState(initialSources);
   const [logs, setLogs] = useState(initialLogs);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [loadingCode, setLoadingCode] = useState<string | null>(null);
   const [globalLoading, setGlobalLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const categories = Array.from(new Set(sources.map((s) => s.categorySlug || "general"))).sort();
+
+  const filteredSources = selectedCategory === "all"
+    ? sources
+    : sources.filter((s) => s.categorySlug === selectedCategory);
 
   const handleFetch = async (sourceCode?: string) => {
     if (sourceCode) {
@@ -97,11 +104,38 @@ export const SourcesTableClient: React.FC<SourcesTableClientProps> = ({
         </button>
       </div>
 
+      {/* Filter Tabs by Category */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button
+          onClick={() => setSelectedCategory("all")}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+            selectedCategory === "all"
+              ? "bg-navy-900 text-white shadow-2xs"
+              : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+          }`}
+        >
+          All Desks ({sources.length})
+        </button>
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              selectedCategory === cat
+                ? "bg-brandTeal-600 text-white shadow-2xs"
+                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       {/* Sources Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
         <div className="p-4 border-b border-slate-100 flex items-center justify-between">
           <h2 className="font-serif font-bold text-sm text-navy-900">
-            Configured Ingestion Connectors ({sources.length})
+            Configured Ingestion Connectors ({filteredSources.length})
           </h2>
           <span className="text-xs text-slate-500">Auto-Deduplicating via SHA-256</span>
         </div>
@@ -111,6 +145,7 @@ export const SourcesTableClient: React.FC<SourcesTableClientProps> = ({
             <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200 text-[10px]">
               <tr>
                 <th className="py-3 px-4">Source Connector</th>
+                <th className="py-3 px-4">Desk</th>
                 <th className="py-3 px-4">Type</th>
                 <th className="py-3 px-4">Interval</th>
                 <th className="py-3 px-4">Last Status</th>
@@ -119,7 +154,7 @@ export const SourcesTableClient: React.FC<SourcesTableClientProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {sources.map((src) => {
+              {filteredSources.map((src) => {
                 const isLoading = loadingCode === src.code;
                 const dateStr = src.lastFetchedAt
                   ? format(new Date(src.lastFetchedAt), "MMM dd, HH:mm:ss")
@@ -129,9 +164,14 @@ export const SourcesTableClient: React.FC<SourcesTableClientProps> = ({
                   <tr key={src.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-navy-900">{src.name}</div>
-                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                        {src.code}
+                      <div className="text-[10px] text-slate-400 font-mono mt-0.5 truncate max-w-xs">
+                        {src.feedUrl || src.code}
                       </div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="px-2 py-0.5 rounded bg-brandTeal-50 text-brandTeal-700 font-bold text-[10px]">
+                        {src.categorySlug}
+                      </span>
                     </td>
                     <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600">
                       {src.type}

@@ -51,10 +51,30 @@ async function seed() {
   // 3. Categories (Parent & Subcategories)
   const categoryStructure = [
     {
+      name: "General News",
+      slug: "general-news",
+      description: "National and international headlines across economy, science, environment, sports, and policy.",
+      displayOrder: 1,
+      subcategories: [
+        { name: "India News", slug: "india-news" },
+        { name: "World News", slug: "world-news" },
+        { name: "Politics", slug: "politics" },
+        { name: "Business & Economy", slug: "business-economy" },
+        { name: "Sports", slug: "sports" },
+        { name: "Entertainment", slug: "entertainment" },
+        { name: "Education", slug: "education" },
+        { name: "Science", slug: "science" },
+        { name: "Environment", slug: "environment" },
+        { name: "Government Updates", slug: "government-updates" },
+        { name: "Breaking News", slug: "breaking-news" },
+        { name: "Trending News", slug: "trending-news" },
+      ],
+    },
+    {
       name: "Pharmaceutical",
       slug: "pharmaceutical",
       description: "Global pharmaceutical developments, drug approvals, biotechnology breakthroughs, and safety.",
-      displayOrder: 1,
+      displayOrder: 2,
       subcategories: [
         { name: "Drug Approvals", slug: "drug-approvals" },
         { name: "Drug Recalls", slug: "drug-recalls" },
@@ -72,7 +92,7 @@ async function seed() {
       name: "Medical Devices",
       slug: "medical-devices",
       description: "Medical device engineering, 510(k) clearances, PMA authorizations, recalls, and AI diagnostics.",
-      displayOrder: 2,
+      displayOrder: 3,
       subcategories: [
         { name: "Device Industry News", slug: "device-industry-news" },
         { name: "FDA Approvals & Clearances", slug: "device-approvals-clearances" },
@@ -93,7 +113,7 @@ async function seed() {
       name: "FDA News",
       slug: "fda-news",
       description: "Official United States Food and Drug Administration actions, warning letters, and updates.",
-      displayOrder: 3,
+      displayOrder: 4,
       subcategories: [
         { name: "FDA Drug Approvals", slug: "fda-drug-approvals" },
         { name: "FDA Drug Recalls", slug: "fda-drug-recalls" },
@@ -108,7 +128,7 @@ async function seed() {
       name: "WHO & Healthcare",
       slug: "who-healthcare",
       description: "World Health Organization bulletins, disease outbreaks, and global health initiatives.",
-      displayOrder: 4,
+      displayOrder: 5,
       subcategories: [
         { name: "WHO Announcements", slug: "who-announcements" },
         { name: "Disease Outbreaks", slug: "disease-outbreaks" },
@@ -116,22 +136,6 @@ async function seed() {
         { name: "Public Health", slug: "public-health" },
         { name: "Healthcare Innovation", slug: "healthcare-innovation" },
         { name: "Hospitals & Care Delivery", slug: "hospitals-care" },
-      ],
-    },
-    {
-      name: "Regulatory Intelligence",
-      slug: "regulatory-intelligence",
-      description: "GxP, GMP, 21 CFR Part 11, EU MDR, CDSCO, data integrity, and compliance strategies.",
-      displayOrder: 5,
-      subcategories: [
-        { name: "US FDA Regulations", slug: "us-fda-regs" },
-        { name: "EMA Regulations", slug: "ema-regulations" },
-        { name: "CDSCO Regulations", slug: "cdsco-regulations" },
-        { name: "GMP & cGMP Compliance", slug: "gmp-cgmp" },
-        { name: "21 CFR Part 11 & EU Annex 11", slug: "21-cfr-part-11" },
-        { name: "Data Integrity", slug: "data-integrity" },
-        { name: "ISO Standards (13485/14971)", slug: "iso-standards" },
-        { name: "QMSR & CSV/CSA", slug: "qmsr-csv-csa" },
       ],
     },
     {
@@ -149,15 +153,19 @@ async function seed() {
       ],
     },
     {
-      name: "General News",
-      slug: "general-news",
-      description: "National and international headlines across economy, science, environment, and policy.",
+      name: "Regulatory Intelligence",
+      slug: "regulatory-intelligence",
+      description: "GxP, GMP, 21 CFR Part 11, EU MDR, CDSCO, data integrity, and compliance strategies.",
       displayOrder: 7,
       subcategories: [
-        { name: "India News", slug: "india-news" },
-        { name: "World News", slug: "world-news" },
-        { name: "Business & Economy", slug: "business-economy" },
-        { name: "Science & Environment", slug: "science-environment" },
+        { name: "US FDA Regulations", slug: "us-fda-regs" },
+        { name: "EMA Regulations", slug: "ema-regulations" },
+        { name: "CDSCO Regulations", slug: "cdsco-regulations" },
+        { name: "GMP & cGMP Compliance", slug: "gmp-cgmp" },
+        { name: "21 CFR Part 11 & EU Annex 11", slug: "21-cfr-part-11" },
+        { name: "Data Integrity", slug: "data-integrity" },
+        { name: "ISO Standards (13485/14971)", slug: "iso-standards" },
+        { name: "QMSR & CSV/CSA", slug: "qmsr-csv-csa" },
       ],
     },
   ];

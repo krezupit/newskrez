@@ -6,7 +6,9 @@ import { z } from "zod";
 
 const statusSchema = z.object({
   articleId: z.number(),
-  status: z.enum(["Draft", "Pending Review", "Approved", "Published", "Rejected", "Archived"]),
+  status: z.enum(["Draft", "Pending Review", "Approved", "Published", "Rejected", "Archived"]).optional(),
+  isFeatured: z.boolean().optional(),
+  isBreaking: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -22,15 +24,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid status parameters" }, { status: 400 });
     }
 
-    const { articleId, status } = parsed.data;
+    const { articleId, status, isFeatured, isBreaking } = parsed.data;
 
     const updateData: any = {
-      status,
       reviewerId: user.userId,
     };
 
-    if (status === "Published") {
-      updateData.publishedAt = new Date();
+    if (status) {
+      updateData.status = status;
+      if (status === "Published") {
+        updateData.publishedAt = new Date();
+      }
+    }
+
+    if (typeof isFeatured === "boolean") {
+      updateData.isFeatured = isFeatured;
+    }
+
+    if (typeof isBreaking === "boolean") {
+      updateData.isBreaking = isBreaking;
     }
 
     await db.update(schema.articles).set(updateData).where(eq(schema.articles.id, articleId));
@@ -39,13 +51,13 @@ export async function POST(req: NextRequest) {
     await db.insert(schema.auditLogs).values({
       userId: user.userId,
       userEmail: user.email,
-      action: `status_change_to_${status.toLowerCase()}`,
+      action: status ? `status_change_to_${status.toLowerCase()}` : "toggle_feature_state",
       module: "articles",
       entityId: String(articleId),
-      details: JSON.stringify({ newStatus: status, timestamp: new Date().toISOString() }),
+      details: JSON.stringify({ updateData, timestamp: new Date().toISOString() }),
     });
 
-    return NextResponse.json({ success: true, status });
+    return NextResponse.json({ success: true, ...updateData });
   } catch (error: any) {
     console.error("Article status update error:", error);
     return NextResponse.json(
