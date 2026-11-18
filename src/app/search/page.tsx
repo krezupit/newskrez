@@ -5,7 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { getCurrentUser } from "@/lib/auth";
 import { ArticleCard } from "@/components/news/ArticleCard";
-import { Search, ChevronRight, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 
 interface SearchPageProps {
   searchParams: {
@@ -21,10 +21,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = searchParams.q || "";
   const catFilter = searchParams.cat || "all";
 
-  const navCategories = await db.query.categories.findMany({
-    where: and(eq(schema.categories.isActive, true), eq(schema.categories.isNav, true)),
-    orderBy: [schema.categories.displayOrder],
-  });
+  const allCategories = await db.query.categories.findMany();
+  const navCategories = allCategories
+    .filter((c) => c.isActive && c.isNav)
+    .sort((a, b) => a.displayOrder - b.displayOrder);
+
+  const catMap = new Map<number, { name: string; slug: string }>();
+  for (const c of allCategories) {
+    catMap.set(c.id, { name: c.name, slug: c.slug });
+  }
 
   let results: any[] = [];
 
@@ -41,7 +46,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     ];
 
     if (catFilter !== "all") {
-      const selectedCat = navCategories.find((c) => c.slug === catFilter);
+      const selectedCat = allCategories.find((c) => c.slug === catFilter);
       if (selectedCat) {
         whereConditions.push(eq(schema.articles.primaryCategoryId, selectedCat.id));
       }
@@ -51,14 +56,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       where: and(...whereConditions),
       orderBy: [desc(schema.articles.publishedAt)],
       limit: 30,
-      with: { primaryCategory: true },
     });
 
-    results = rawResults.map((r) => ({
-      ...r,
-      categoryName: r.primaryCategory?.name,
-      categorySlug: r.primaryCategory?.slug,
-    }));
+    results = rawResults.map((r) => {
+      const cat = catMap.get(r.primaryCategoryId);
+      return {
+        ...r,
+        categoryName: cat?.name || "General",
+        categorySlug: cat?.slug || "general",
+      };
+    });
   }
 
   return (
