@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { AlertOctagon, ShieldAlert, FileText, ExternalLink, ArrowRight } from "lucide-react";
+import { AlertOctagon, ExternalLink, ArrowRight } from "lucide-react";
 
 export interface RegulatoryAlertItem {
   id: number;
@@ -28,24 +28,24 @@ export const RegulatoryAlertsBanner: React.FC<RegulatoryAlertsBannerProps> = ({
   if (!alerts || alerts.length === 0) return null;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-6">
-      <div className="bg-slate-900 rounded-2xl p-5 md:p-6 text-white shadow-xl border border-slate-800">
+    <section className="max-w-7xl mx-auto px-4 py-8">
+      <div className="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-2xl border border-slate-800">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-alertRed-600/20 text-alertRed-400 border border-alertRed-500/30">
-              <AlertOctagon className="w-6 h-6 animate-pulse" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-800 gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-alertRed-600/20 text-alertRed-400 border border-alertRed-500/30">
+              <AlertOctagon className="w-7 h-7 animate-pulse" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg md:text-xl font-bold font-serif text-white">
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-xl md:text-2xl font-black font-serif text-white">
                   Regulatory Recalls & Global Health Directives
                 </h2>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-alertRed-600 text-white uppercase">
+                <span className="px-2.5 py-0.5 rounded text-xs font-black bg-alertRed-600 text-white uppercase tracking-wider">
                   LIVE
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-slate-300 mt-0.5">
                 Official enforcement actions from FDA CDRH, WHO Outbreak Response, EMA & CDSCO
               </p>
             </div>
@@ -53,15 +53,15 @@ export const RegulatoryAlertsBanner: React.FC<RegulatoryAlertsBannerProps> = ({
 
           <Link
             href="/alerts"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-brandTeal-400 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-bold text-brandTeal-300 hover:text-white transition-colors"
           >
             <span>View All Recalls & Alerts</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
         {/* Alerts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
           {alerts.slice(0, 4).map((alert) => {
             const isClass1 = alert.recallClass?.includes("I") && !alert.recallClass?.includes("II");
             const alertDateStr = alert.alertDate
@@ -71,19 +71,19 @@ export const RegulatoryAlertsBanner: React.FC<RegulatoryAlertsBannerProps> = ({
             return (
               <div
                 key={alert.id}
-                className="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60 hover:border-brandTeal-500/50 transition-all flex flex-col justify-between space-y-3 group"
+                className="bg-slate-800/90 rounded-2xl p-5 border border-slate-700 hover:border-brandTeal-400 transition-all flex flex-col justify-between space-y-3.5 group shadow-sm"
               >
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-700 text-brandTeal-300">
+                    <span className="text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded bg-slate-700 text-brandTeal-300">
                       {alert.agency}
                     </span>
                     {alert.recallClass && (
                       <span
-                        className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
+                        className={`text-xs font-black uppercase px-2.5 py-0.5 rounded ${
                           isClass1
                             ? "bg-alertRed-600 text-white"
-                            : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                            : "bg-amber-500/25 text-amber-300 border border-amber-500/40"
                         }`}
                       >
                         {alert.recallClass}
@@ -91,43 +91,43 @@ export const RegulatoryAlertsBanner: React.FC<RegulatoryAlertsBannerProps> = ({
                     )}
                   </div>
 
-                  <h3 className="font-serif font-bold text-sm text-slate-100 group-hover:text-brandTeal-300 transition-colors line-clamp-2 leading-snug">
+                  <h3 className="font-serif font-black text-base text-slate-100 group-hover:text-brandTeal-300 transition-colors line-clamp-2 leading-snug">
                     <Link href={`/alerts/${alert.slug}`}>{alert.title}</Link>
                   </h3>
 
                   {alert.affectedProduct && (
-                    <div className="text-[11px] text-slate-300 bg-slate-900/60 p-2 rounded border border-slate-700/50">
-                      <span className="text-slate-400 block text-[9px] uppercase font-semibold">
+                    <div className="text-xs text-slate-200 bg-slate-900/80 p-3 rounded-xl border border-slate-700/60 space-y-0.5">
+                      <span className="text-slate-400 block text-xs uppercase font-bold">
                         Affected Product:
                       </span>
-                      <span className="line-clamp-1 font-medium text-slate-200">
+                      <span className="line-clamp-2 font-medium text-slate-100 text-xs">
                         {alert.affectedProduct}
                       </span>
                     </div>
                   )}
 
                   {alert.manufacturer && (
-                    <div className="text-[11px] text-slate-400">
-                      Firm: <span className="text-slate-300">{alert.manufacturer}</span>
+                    <div className="text-xs text-slate-300 font-medium">
+                      Firm: <span className="text-white font-bold">{alert.manufacturer}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-700/60 text-[11px] text-slate-400">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-700/80 text-xs text-slate-400 font-semibold">
                   <span>{alertDateStr}</span>
                   {alert.sourceUrl ? (
                     <a
                       href={alert.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-brandTeal-400 hover:text-white inline-flex items-center gap-1"
+                      className="text-brandTeal-300 hover:text-white inline-flex items-center gap-1 font-bold"
                     >
-                      Docket <ExternalLink className="w-2.5 h-2.5" />
+                      Docket <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   ) : (
                     <Link
                       href={`/alerts/${alert.slug}`}
-                      className="text-brandTeal-400 hover:text-white"
+                      className="text-brandTeal-300 hover:text-white font-bold"
                     >
                       Details →
                     </Link>
