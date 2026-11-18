@@ -7,8 +7,8 @@ import { Lock, Mail, AlertCircle, ArrowRight } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@newskrez.com");
-  const [password, setPassword] = useState("Admin@NewsKrez2026!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="admin@newskrez.com"
+                  placeholder="name@organization.com"
                   className="w-full bg-navy-950 border border-navy-700 rounded-xl pl-11 pr-4 py-3.5 text-base text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brandTeal-500 font-medium"
                 />
                 <Mail className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -108,15 +108,6 @@ export default function AdminLoginPage() {
               <ArrowRight className="w-5 h-5" />
             </button>
           </form>
-
-          {/* Quick Demo Credentials Info */}
-          <div className="p-4 bg-navy-950/90 rounded-2xl border border-navy-800 text-xs sm:text-sm text-slate-300 space-y-1.5">
-            <span className="font-bold text-brandTeal-400 block text-xs uppercase tracking-wider">
-              Default Superadmin Access:
-            </span>
-            <div>Email: <strong className="text-white">admin@newskrez.com</strong></div>
-            <div>Password: <strong className="text-white">Admin@NewsKrez2026!</strong></div>
-          </div>
         </div>
       </div>
     </div>
