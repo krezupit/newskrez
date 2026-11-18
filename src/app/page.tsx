@@ -1,101 +1,282 @@
-import Image from "next/image";
+import React from "react";
+import { db, schema } from "@/db";
+import { desc, eq, and } from "drizzle-orm";
+import { getCurrentUser } from "@/lib/auth";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { NewsTicker } from "@/components/layout/NewsTicker";
+import { HeroFeatured } from "@/components/home/HeroFeatured";
+import { RegulatoryAlertsBanner } from "@/components/home/RegulatoryAlertsBanner";
+import { MedicalDevicesSection } from "@/components/home/MedicalDevicesSection";
+import { PharmaSection } from "@/components/home/PharmaSection";
+import { RegulatoryIntelligenceSection } from "@/components/home/RegulatoryIntelligenceSection";
+import { TechAISection } from "@/components/home/TechAISection";
+import { TrendingSidebar } from "@/components/home/TrendingSidebar";
+import { NewsletterBox } from "@/components/home/NewsletterBox";
+import { AdPlacement } from "@/components/home/AdPlacement";
+import { ArticleCard } from "@/components/news/ArticleCard";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const currentUser = await getCurrentUser();
+
+  // 1. Fetch Categories for Navigation & Lookup Map
+  const allCategories = await db.query.categories.findMany({
+    where: eq(schema.categories.isActive, true),
+    orderBy: [schema.categories.displayOrder],
+  });
+
+  const navCategories = allCategories.filter((c) => c.isNav);
+  const catMap = new Map<number, { name: string; slug: string }>();
+  for (const c of allCategories) {
+    catMap.set(c.id, { name: c.name, slug: c.slug });
+  }
+
+  // 2. Fetch Breaking / Ticker Items
+  const breakingArticles = await db.query.articles.findMany({
+    where: and(eq(schema.articles.status, "Published"), eq(schema.articles.isBreaking, true)),
+    orderBy: [desc(schema.articles.publishedAt)],
+    limit: 5,
+  });
+
+  const recentAlerts = await db.query.regulatoryAlerts.findMany({
+    where: eq(schema.regulatoryAlerts.status, "active"),
+    orderBy: [desc(schema.regulatoryAlerts.alertDate)],
+    limit: 8,
+  });
+
+  const tickerItems = [
+    ...breakingArticles.map((a) => ({
+      id: a.id,
+      title: a.title,
+      category: "Breaking",
+      url: `/article/${a.slug}`,
+      isAlert: true,
+    })),
+    ...recentAlerts.map((alt) => ({
+      id: alt.id + 10000,
+      title: `[${alt.agency} ${alt.recallClass || alt.alertType.toUpperCase()}] ${alt.title}`,
+      category: alt.agency,
+      url: `/alerts/${alt.slug}`,
+      isAlert: true,
+    })),
+  ];
+
+  // 3. Fetch Featured Hero Articles
+  const featuredArticlesRaw = await db.query.articles.findMany({
+    where: and(eq(schema.articles.status, "Published"), eq(schema.articles.isFeatured, true)),
+    orderBy: [desc(schema.articles.publishedAt)],
+    limit: 6,
+  });
+
+  const featuredArticles = featuredArticlesRaw.map((a) => ({
+    ...a,
+    categoryName: catMap.get(a.primaryCategoryId)?.name,
+    categorySlug: catMap.get(a.primaryCategoryId)?.slug,
+  }));
+
+  const leadArticle = featuredArticles[0] || null;
+  const secondaryArticles = featuredArticles.slice(1);
+
+  // 4. Fetch Medical Devices News & Records
+  const medDeviceCategory = allCategories.find((c) => c.slug === "medical-devices");
+  const medDeviceArticlesRaw = medDeviceCategory
+    ? await db.query.articles.findMany({
+        where: and(
+          eq(schema.articles.status, "Published"),
+          eq(schema.articles.primaryCategoryId, medDeviceCategory.id)
+        ),
+        orderBy: [desc(schema.articles.publishedAt)],
+        limit: 4,
+      })
+    : [];
+
+  const medDeviceArticles = medDeviceArticlesRaw.map((a) => ({
+    ...a,
+    categoryName: catMap.get(a.primaryCategoryId)?.name,
+    categorySlug: catMap.get(a.primaryCategoryId)?.slug,
+  }));
+
+  const recentDevices = await db.query.medicalDevices.findMany({
+    orderBy: [desc(schema.medicalDevices.createdAt)],
+    limit: 5,
+  });
+
+  // 5. Fetch Pharmaceutical News
+  const pharmaCategory = allCategories.find((c) => c.slug === "pharmaceutical");
+  const pharmaArticlesRaw = pharmaCategory
+    ? await db.query.articles.findMany({
+        where: and(
+          eq(schema.articles.status, "Published"),
+          eq(schema.articles.primaryCategoryId, pharmaCategory.id)
+        ),
+        orderBy: [desc(schema.articles.publishedAt)],
+        limit: 3,
+      })
+    : [];
+
+  const pharmaArticles = pharmaArticlesRaw.map((a) => ({
+    ...a,
+    categoryName: catMap.get(a.primaryCategoryId)?.name,
+    categorySlug: catMap.get(a.primaryCategoryId)?.slug,
+  }));
+
+  // 6. Fetch Technology & AI News
+  const techCategory = allCategories.find((c) => c.slug === "technology");
+  const techArticlesRaw = techCategory
+    ? await db.query.articles.findMany({
+        where: and(
+          eq(schema.articles.status, "Published"),
+          eq(schema.articles.primaryCategoryId, techCategory.id)
+        ),
+        orderBy: [desc(schema.articles.publishedAt)],
+        limit: 3,
+      })
+    : [];
+
+  const techArticles = techArticlesRaw.map((a) => ({
+    ...a,
+    categoryName: catMap.get(a.primaryCategoryId)?.name,
+    categorySlug: catMap.get(a.primaryCategoryId)?.slug,
+  }));
+
+  // 7. Fetch Regulatory Intelligence News
+  const regCategory = allCategories.find((c) => c.slug === "regulatory-intelligence");
+  const regArticlesRaw = regCategory
+    ? await db.query.articles.findMany({
+        where: and(
+          eq(schema.articles.status, "Published"),
+          eq(schema.articles.primaryCategoryId, regCategory.id)
+        ),
+        orderBy: [desc(schema.articles.publishedAt)],
+        limit: 3,
+      })
+    : [];
+
+  const regArticles = regArticlesRaw.map((a) => ({
+    ...a,
+    categoryName: catMap.get(a.primaryCategoryId)?.name,
+    categorySlug: catMap.get(a.primaryCategoryId)?.slug,
+  }));
+
+  // 8. Trending & Most Read Articles
+  const trendingRaw = await db.query.articles.findMany({
+    where: eq(schema.articles.status, "Published"),
+    orderBy: [desc(schema.articles.viewsCount)],
+    limit: 5,
+  });
+
+  const trendingArticles = trendingRaw.map((a) => ({
+    ...a,
+    categoryName: catMap.get(a.primaryCategoryId)?.name,
+    categorySlug: catMap.get(a.primaryCategoryId)?.slug,
+  }));
+
+  const editorsPicksRaw = await db.query.articles.findMany({
+    where: and(eq(schema.articles.status, "Published"), eq(schema.articles.isEditorPick, true)),
+    orderBy: [desc(schema.articles.publishedAt)],
+    limit: 4,
+  });
+
+  const editorsPicks = editorsPicksRaw.map((a) => ({
+    ...a,
+    categoryName: catMap.get(a.primaryCategoryId)?.name,
+    categorySlug: catMap.get(a.primaryCategoryId)?.slug,
+  }));
+
+  // 9. Latest Feed
+  const latestArticlesRaw = await db.query.articles.findMany({
+    where: eq(schema.articles.status, "Published"),
+    orderBy: [desc(schema.articles.publishedAt)],
+    limit: 6,
+  });
+
+  const latestArticles = latestArticlesRaw.map((a) => ({
+    ...a,
+    categoryName: catMap.get(a.primaryCategoryId)?.name,
+    categorySlug: catMap.get(a.primaryCategoryId)?.slug,
+  }));
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="flex-1 flex flex-col">
+      {/* Header & Sticky Nav */}
+      <Header categories={navCategories} user={currentUser} />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      {/* Breaking News Ticker */}
+      <NewsTicker items={tickerItems} />
+
+      {/* Header Top AdSense Unit */}
+      <AdPlacement placement="header_top" />
+
+      {/* Hero Featured Intelligence Section */}
+      <HeroFeatured
+        leadArticle={leadArticle}
+        secondaryArticles={secondaryArticles}
+      />
+
+      {/* Live Regulatory Recalls & Safety Alerts Banner */}
+      <RegulatoryAlertsBanner alerts={recentAlerts} />
+
+      {/* Main Content Layout with Sidebar */}
+      <div className="max-w-7xl mx-auto px-4 py-4 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main Feed Column (8 cols) */}
+          <main className="lg:col-span-8 space-y-8">
+            {/* Medical Devices Module Highlight */}
+            <MedicalDevicesSection
+              articles={medDeviceArticles}
+              recentDevices={recentDevices}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+            {/* Mid-feed Ad Banner */}
+            <AdPlacement placement="homepage_middle" />
+
+            {/* Pharmaceutical & Biotech Desk */}
+            <PharmaSection articles={pharmaArticles} />
+
+            {/* Regulatory Intelligence & Standards */}
+            <RegulatoryIntelligenceSection articles={regArticles} />
+
+            {/* Technology, AI & Cybersecurity */}
+            <TechAISection articles={techArticles} />
+
+            {/* Latest Global News Feed */}
+            <section className="space-y-4 pt-4 border-t border-slate-200">
+              <div className="flex items-center justify-between pb-2 border-b-2 border-navy-900">
+                <h3 className="font-serif font-black text-xl text-navy-900">
+                  Latest Ingested News Wire
+                </h3>
+                <span className="text-xs text-slate-500 font-semibold uppercase">
+                  Continuous Synchronization
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {latestArticles.map((art) => (
+                  <ArticleCard key={art.id} article={art} variant="standard" />
+                ))}
+              </div>
+            </section>
+          </main>
+
+          {/* Right Trending & Editorial Sidebar (4 cols) */}
+          <div className="lg:col-span-4">
+            <TrendingSidebar
+              trendingArticles={trendingArticles}
+              editorsPicks={editorsPicks}
+            />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Newsletter Subscription Box */}
+      <div className="max-w-7xl mx-auto px-4 w-full">
+        <NewsletterBox />
+      </div>
+
+      {/* Global Footer */}
+      <Footer />
     </div>
   );
 }
