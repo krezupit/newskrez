@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
+import { LogoutButton } from "@/components/admin/LogoutButton";
 import {
   LayoutDashboard,
   FileText,
@@ -91,15 +92,7 @@ export default async function AdminLayout({
             <span>Live Public Portal</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </Link>
-          <form action="/api/auth/logout" method="POST">
-            <button
-              type="submit"
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-alertRed-400 hover:text-alertRed-300 hover:bg-navy-900 transition-colors text-left"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
-            </button>
-          </form>
+          <LogoutButton />
         </div>
       </aside>
 
