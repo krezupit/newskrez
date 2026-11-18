@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth";
 
-export async function POST(req: NextRequest) {
-  const acceptsJson = req.headers.get("accept")?.includes("application/json");
-
-  // Determine redirect URL (fallback to /admin/login)
+function clearSessionResponse(req: NextRequest, isJsonPreferred: boolean) {
   const loginUrl = new URL("/admin/login", req.url);
-
-  // If client specifically requested JSON, return JSON, otherwise redirect to login page (HTTP 303 See Other)
-  const response = acceptsJson
-    ? NextResponse.json({ success: true, message: "Logged out" })
+  const response = isJsonPreferred
+    ? NextResponse.json({ success: true, message: "Logged out", redirectUrl: "/admin/login" })
     : NextResponse.redirect(loginUrl, 303);
 
-  // Expire session cookie
+  const isLocalhost = req.headers.get("host")?.includes("localhost") || req.headers.get("host")?.includes("127.0.0.1");
+  const isSecure = process.env.NODE_ENV === "production" && !isLocalhost;
+
+  // Clear cookie completely
   response.cookies.set({
     name: SESSION_COOKIE_NAME,
     value: "",
@@ -21,25 +19,21 @@ export async function POST(req: NextRequest) {
     maxAge: 0,
     path: "/",
     sameSite: "lax",
+    secure: isSecure,
   });
 
   return response;
 }
 
+export async function POST(req: NextRequest) {
+  // If request specifically asked for application/json and is an XHR / fetch
+  const acceptsJson = req.headers.get("accept")?.includes("application/json") &&
+    req.headers.get("sec-fetch-dest") !== "document";
+
+  return clearSessionResponse(req, !!acceptsJson);
+}
+
 export async function GET(req: NextRequest) {
-  // If user accesses /api/auth/logout directly in browser address bar
-  const loginUrl = new URL("/admin/login", req.url);
-  const response = NextResponse.redirect(loginUrl, 303);
-
-  response.cookies.set({
-    name: SESSION_COOKIE_NAME,
-    value: "",
-    httpOnly: true,
-    expires: new Date(0),
-    maxAge: 0,
-    path: "/",
-    sameSite: "lax",
-  });
-
-  return response;
+  // If user accesses /api/auth/logout directly in browser address bar or via link
+  return clearSessionResponse(req, false);
 }

@@ -119,6 +119,11 @@ export const articles = mysqlTable(
     reviewerId: int("reviewer_id"),
     primaryCategoryId: int("primary_category_id").notNull(),
     sourceId: int("source_id"), // null if original/manual editorial
+    provider: varchar("provider", { length: 50 }).default("newskrez"),
+    sourceName: varchar("source_name", { length: 150 }),
+    country: varchar("country", { length: 50 }),
+    language: varchar("language", { length: 20 }).default("en"),
+    importTimestamp: timestamp("import_timestamp").defaultNow(),
     sourceUrl: text("source_url"),
     sourceUrlHash: varchar("source_url_hash", { length: 64 }), // sha256 for fast deduplication
     externalRecordId: varchar("external_record_id", { length: 500 }), // external API identifier
@@ -239,6 +244,59 @@ export const ingestionCheckpoints = mysqlTable(
   },
   (table) => ({
     codeKeyUnique: uniqueIndex("idx_checkpoint_source").on(table.sourceCode),
+  })
+);
+
+export const newsProviders = mysqlTable(
+  "news_providers",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    code: varchar("code", { length: 50 }).notNull().unique(), // gnews, newsapi, currents, mediastack, newsdata
+    name: varchar("name", { length: 100 }).notNull(),
+    description: text("description"),
+    websiteUrl: varchar("website_url", { length: 255 }),
+    envKeyName: varchar("env_key_name", { length: 100 }).notNull(),
+    isEnabled: boolean("is_enabled").notNull().default(true),
+    priority: int("priority").notNull().default(1),
+    rateLimitPerDay: int("rate_limit_per_day"),
+    rateLimitPerMinute: int("rate_limit_per_minute"),
+    quotaUsedToday: int("quota_used_today").notNull().default(0),
+    quotaRemaining: int("quota_remaining"),
+    quotaResetAt: timestamp("quota_reset_at"),
+    lastFetchAt: timestamp("last_fetch_at"),
+    lastSuccessAt: timestamp("last_success_at"),
+    lastStatus: varchar("last_status", { length: 30 }).default("idle"),
+    lastErrorMessage: text("last_error_message"),
+    totalArticlesImported: int("total_articles_imported").notNull().default(0),
+    supportedCategories: text("supported_categories"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    codeIdx: uniqueIndex("idx_news_providers_code").on(table.code),
+    enabledIdx: index("idx_news_providers_enabled").on(table.isEnabled),
+  })
+);
+
+export const providerFetchLogs = mysqlTable(
+  "provider_fetch_logs",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    providerCode: varchar("provider_code", { length: 50 }).notNull(),
+    endpoint: varchar("endpoint", { length: 255 }),
+    categorySlug: varchar("category_slug", { length: 100 }),
+    status: varchar("status", { length: 30 }).notNull(),
+    httpStatus: int("http_status"),
+    articlesFetched: int("articles_fetched").notNull().default(0),
+    articlesInserted: int("articles_inserted").notNull().default(0),
+    articlesSkipped: int("articles_skipped").notNull().default(0),
+    errorMessage: text("error_message"),
+    executionTimeMs: int("execution_time_ms").notNull().default(0),
+    fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    providerIdx: index("idx_prov_logs_code").on(table.providerCode),
+    dateIdx: index("idx_prov_logs_date").on(table.fetchedAt),
   })
 );
 

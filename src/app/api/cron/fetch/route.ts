@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { NewsIngestionEngine } from "@/lib/ingestion/engine";
+import { ingestAllActiveProviders } from "@/lib/news-providers";
 
 export async function GET(req: NextRequest) {
   return handleFetch(req);
@@ -14,6 +15,7 @@ async function handleFetch(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const secretParam = searchParams.get("secret");
   const sourceParam = searchParams.get("source") || undefined;
+  const skipProviders = searchParams.get("skipProviders") === "true";
 
   const validSecret =
     process.env.CRON_SECRET || "newskrez-cron-trigger-secure-token-99482";
@@ -29,10 +31,26 @@ async function handleFetch(req: NextRequest) {
   }
 
   try {
-    const results = await NewsIngestionEngine.runAllSources(sourceParam);
-    const totalFetched = results.reduce((acc, r) => acc + r.fetched, 0);
-    const totalInserted = results.reduce((acc, r) => acc + r.inserted, 0);
-    const totalSkipped = results.reduce((acc, r) => acc + r.skipped, 0);
+    const rssResults = await NewsIngestionEngine.runAllSources(sourceParam);
+
+    let providerResults: any[] = [];
+    if (!skipProviders && !sourceParam) {
+      try {
+        providerResults = await ingestAllActiveProviders();
+      } catch (provErr) {
+        console.error("Provider ingestion error during cron:", provErr);
+      }
+    }
+
+    const totalFetched =
+      rssResults.reduce((acc, r) => acc + r.fetched, 0) +
+      providerResults.reduce((acc, r) => acc + (r.articlesFetched || 0), 0);
+    const totalInserted =
+      rssResults.reduce((acc, r) => acc + r.inserted, 0) +
+      providerResults.reduce((acc, r) => acc + (r.articlesInserted || 0), 0);
+    const totalSkipped =
+      rssResults.reduce((acc, r) => acc + r.skipped, 0) +
+      providerResults.reduce((acc, r) => acc + (r.articlesSkipped || 0), 0);
 
     return NextResponse.json({
       success: true,
@@ -41,9 +59,10 @@ async function handleFetch(req: NextRequest) {
         totalFetched,
         totalInserted,
         totalSkipped,
-        sourcesProcessed: results.length,
+        sourcesProcessed: rssResults.length + providerResults.length,
       },
-      details: results,
+      rssSources: rssResults,
+      apiProviders: providerResults,
     });
   } catch (error: any) {
     console.error("Cron fetch execution error:", error);

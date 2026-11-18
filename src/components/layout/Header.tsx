@@ -260,22 +260,22 @@ export const Header: React.FC<HeaderProps> = ({ categories = [], user }) => {
                   <div
                     key={link.name}
                     ref={dropdownRef}
-                    className="relative group"
+                    className="relative group shrink-0"
                     onMouseEnter={() => setIsGeneralDropdownOpen(true)}
                     onMouseLeave={() => setIsGeneralDropdownOpen(false)}
                   >
                     <Link
                       href={link.href}
                       onClick={() => setIsGeneralDropdownOpen(false)}
-                      className={`px-3.5 py-2.5 rounded-lg text-sm sm:text-base font-black transition-all relative inline-flex items-center gap-1.5 ${
+                      className={`px-3.5 py-2.5 rounded-lg text-sm sm:text-base font-black transition-all relative inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                         isGeneralActive
                           ? "bg-brandTeal-600 text-white shadow-sm"
                           : "text-amber-300 hover:text-white hover:bg-navy-800"
                       }`}
                     >
-                      <span>{link.name}</span>
+                      <span className="whitespace-nowrap">{link.name}</span>
                       <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${
+                        className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
                           isGeneralDropdownOpen ? "rotate-180" : ""
                         }`}
                       />
@@ -343,7 +343,7 @@ export const Header: React.FC<HeaderProps> = ({ categories = [], user }) => {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`px-3 py-2.5 rounded-lg text-sm sm:text-base font-bold transition-all relative inline-flex items-center gap-1.5 whitespace-nowrap ${
+                  className={`px-3 py-2.5 rounded-lg text-sm sm:text-base font-bold transition-all relative inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                     isActive
                       ? "bg-brandTeal-600 text-white shadow-sm"
                       : "text-slate-100 hover:text-white hover:bg-navy-800"
