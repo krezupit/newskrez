@@ -83,7 +83,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
             <span>•</span>
             <span className="flex items-center gap-1.5">
               <Eye className="w-4 h-4 text-brandTeal-400" />
-              {article.viewsCount || 100} views
+              {article.viewsCount ?? 0} views
             </span>
           </div>
         </div>

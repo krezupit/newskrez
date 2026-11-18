@@ -117,7 +117,7 @@ export class NewsIngestionEngine {
               seoTitle: `${cleanTitle.slice(0, 50)} | NewsKrez`,
               metaDescription: (item.excerpt || cleanTitle).slice(0, 160),
               isBreaking: item.isBreaking || false,
-              viewsCount: Math.floor(Math.random() * 40) + 10,
+              viewsCount: 0,
               readingTimeMinutes: 3,
               publishedAt: articleStatus === "Published" ? item.publishedAt : null,
             });

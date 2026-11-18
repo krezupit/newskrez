@@ -250,7 +250,7 @@ export async function ingestProviderNews(
           metaDescription: article.excerpt.slice(0, 255),
           isBreaking: article.isBreaking,
           isFeatured: false,
-          viewsCount: Math.floor(Math.random() * 45) + 5,
+          viewsCount: 0,
           readingTimeMinutes,
           publishedAt: article.publishedAt,
         });
