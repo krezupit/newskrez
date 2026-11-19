@@ -100,6 +100,12 @@ export const Header: React.FC<HeaderProps> = ({ categories = [], user }) => {
   // 8. Regulatory Intelligence & Compliance
   const navLinks = [
     { name: "Home", href: "/" },
+    {
+      name: "Reels",
+      href: "/reels",
+      badge: "NEW",
+      highlight: true,
+    },
     { name: "General News", href: "/category/general-news", hasDropdown: true },
     { name: "Pharmaceutical", href: "/category/pharmaceutical" },
     {
@@ -384,6 +390,20 @@ export const Header: React.FC<HeaderProps> = ({ categories = [], user }) => {
               className="px-3.5 py-2.5 rounded-lg hover:bg-navy-800 flex items-center justify-between"
             >
               <span>Home</span>
+            </Link>
+
+            <Link
+              href="/reels"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-3.5 py-2.5 rounded-lg bg-brandTeal-600/30 border border-brandTeal-500/40 text-brandTeal-200 font-black flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <Film className="w-4 h-4 text-brandTeal-300" />
+                <span>News Reels Feed</span>
+              </div>
+              <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-brandTeal-500 text-white">
+                NEW
+              </span>
             </Link>
 
             {/* General News Accordion in Mobile */}

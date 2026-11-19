@@ -19,6 +19,7 @@ import {
   History,
   LogOut,
   ExternalLink,
+  Film,
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -36,6 +37,7 @@ export default async function AdminLayout({
   const menuItems = [
     { name: "Dashboard Overview", href: "/admin", icon: LayoutDashboard },
     { name: "Articles Management", href: "/admin/articles", icon: FileText },
+    { name: "News Reels Hub", href: "/admin/reels", icon: Film },
     { name: "Medical Devices Intel", href: "/admin/devices", icon: Activity },
     { name: "FDA & WHO Alerts", href: "/admin/alerts", icon: AlertOctagon },
     { name: "News API Providers", href: "/admin/api-sources", icon: Globe },

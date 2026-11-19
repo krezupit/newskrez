@@ -527,6 +527,144 @@ export const auditLogs = mysqlTable(
 );
 
 // ============================================================================
+// 10. REELS (VERTICAL SHORT-FORM VIDEO & AI REELS)
+// ============================================================================
+
+export const reelSources = mysqlTable(
+  "reel_sources",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 100 }).notNull(),
+    code: varchar("code", { length: 50 }).notNull().unique(), // e.g. bbc-news, reuters-shorts, who-official, newskrez-ai
+    sourceType: varchar("source_type", { length: 50 }).notNull().default("youtube_channel"), // youtube_channel, youtube_playlist, video_rss, api_feed
+    channelId: varchar("channel_id", { length: 100 }),
+    playlistId: varchar("playlist_id", { length: 100 }),
+    feedUrl: varchar("feed_url", { length: 500 }),
+    defaultCategorySlug: varchar("default_category_slug", { length: 100 }).default("general-news"),
+    isEnabled: boolean("is_enabled").notNull().default(true),
+    requiresEditorialApproval: boolean("requires_editorial_approval").notNull().default(false),
+    dailyPublishLimit: int("daily_publish_limit").default(10),
+    publishedToday: int("published_today").notNull().default(0),
+    lastFetchedAt: timestamp("last_fetched_at"),
+    lastSuccessAt: timestamp("last_success_at"),
+    lastErrorMessage: text("last_error_message"),
+    totalReelsImported: int("total_reels_imported").notNull().default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    codeIdx: uniqueIndex("idx_reel_sources_code").on(table.code),
+    enabledIdx: index("idx_reel_sources_enabled").on(table.isEnabled),
+  })
+);
+
+export const reels = mysqlTable(
+  "reels",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    title: varchar("title", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 255 }).notNull().unique(),
+    description: text("description"),
+    videoUrl: varchar("video_url", { length: 500 }).notNull(),
+    videoType: varchar("video_type", { length: 50 }).notNull().default("youtube"), // youtube, mp4, ai_generated
+    externalId: varchar("external_id", { length: 191 }), // e.g. YouTube Video ID
+    thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
+    durationSeconds: int("duration_seconds").default(30),
+    aspectRatio: varchar("aspect_ratio", { length: 20 }).default("9:16"),
+    sourceId: int("source_id"),
+    sourceName: varchar("source_name", { length: 100 }),
+    sourceUrl: varchar("source_url", { length: 500 }),
+    channelTitle: varchar("channel_title", { length: 150 }),
+    primaryCategoryId: int("primary_category_id"),
+    categorySlug: varchar("category_slug", { length: 100 }).default("general-news"),
+    categoryName: varchar("category_name", { length: 100 }).default("General News"),
+    relatedArticleId: int("related_article_id"),
+    status: varchar("status", { length: 30 }).notNull().default("Published"), // Draft, Pending Review, Published, Archived, Rejected
+    rightsStatus: varchar("rights_status", { length: 50 }).default("Authorized Embed"), // Authorized Embed, Original AI-Generated, Licensed
+    isFeatured: boolean("is_featured").default(false),
+    viewsCount: int("views_count").notNull().default(0),
+    likesCount: int("likes_count").notNull().default(0),
+    sharesCount: int("shares_count").notNull().default(0),
+    metadata: text("metadata"), // JSON serialized string
+    publishedAt: timestamp("published_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    slugIdx: uniqueIndex("idx_reels_slug").on(table.slug),
+    statusIdx: index("idx_reels_status").on(table.status),
+    catIdx: index("idx_reels_category").on(table.categorySlug),
+    externalIdIdx: index("idx_reels_external_id").on(table.externalId),
+    publishedIdx: index("idx_reels_published").on(table.publishedAt),
+  })
+);
+
+export const reelGenerationJobs = mysqlTable(
+  "reel_generation_jobs",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    articleId: int("article_id"),
+    title: varchar("title", { length: 255 }).notNull(),
+    summary: text("summary"),
+    scriptText: text("script_text"),
+    voiceProvider: varchar("voice_provider", { length: 50 }).default("web_speech"),
+    voiceId: varchar("voice_id", { length: 100 }),
+    audioUrl: varchar("audio_url", { length: 500 }),
+    videoTemplate: varchar("video_template", { length: 50 }).default("vertical_news_v1"),
+    status: varchar("status", { length: 30 }).notNull().default("pending"), // pending, scripting, narrating, rendering, completed, failed
+    outputVideoUrl: varchar("output_video_url", { length: 500 }),
+    thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
+    errorMessage: text("error_message"),
+    reelId: int("reel_id"),
+    createdBy: int("created_by"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("idx_reel_jobs_status").on(table.status),
+    articleIdx: index("idx_reel_jobs_article").on(table.articleId),
+  })
+);
+
+export const reelViews = mysqlTable(
+  "reel_views",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    reelId: int("reel_id").notNull(),
+    ipAddress: varchar("ip_address", { length: 100 }),
+    userAgent: varchar("user_agent", { length: 255 }),
+    watchDurationSeconds: int("watch_duration_seconds").default(0),
+    completed: boolean("completed").default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    reelIdx: index("idx_reel_views_reel").on(table.reelId),
+    dateIdx: index("idx_reel_views_date").on(table.createdAt),
+  })
+);
+
+export const reelImportLogs = mysqlTable(
+  "reel_import_logs",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    sourceId: int("source_id"),
+    sourceName: varchar("source_name", { length: 100 }),
+    status: varchar("status", { length: 30 }).notNull(), // success, partial, failed
+    reelsFound: int("reels_found").notNull().default(0),
+    reelsImported: int("reels_imported").notNull().default(0),
+    reelsSkipped: int("reels_skipped").notNull().default(0),
+    errorMessage: text("error_message"),
+    details: text("details"), // JSON serialized string
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    sourceIdx: index("idx_reel_import_source").on(table.sourceId),
+    statusIdx: index("idx_reel_import_status").on(table.status),
+    dateIdx: index("idx_reel_import_date").on(table.createdAt),
+  })
+);
+
+// ============================================================================
 // RELATIONS
 // ============================================================================
 
