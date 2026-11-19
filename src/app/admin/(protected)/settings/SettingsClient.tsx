@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sliders, Save, CheckCircle2, LayoutList, Sparkles, Shield, ArrowUp, ArrowDown } from "lucide-react";
+import Link from "next/link";
+import { Sliders, Save, CheckCircle2, LayoutList, Sparkles, Shield, ArrowUp, ArrowDown, Mail, ArrowRight } from "lucide-react";
 
 interface SettingItem {
   id: number;
@@ -85,6 +86,36 @@ export const SettingsClient: React.FC<SettingsClientProps> = ({ initialSettings 
             <span>Settings Saved Successfully</span>
           </div>
         )}
+      </div>
+
+      {/* Quick Navigation to Email & SMTP Configuration */}
+      <div className="bg-gradient-to-r from-navy-950 to-navy-900 rounded-2xl p-4 sm:p-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-navy-800 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brandTeal-500/20 text-brandTeal-400 flex items-center justify-center shrink-0">
+            <Mail className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-serif font-bold text-sm text-white">
+                Hostinger SMTP Email Configuration
+              </h2>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                SSL/TLS 465
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Configure Nodemailer credentials, test SMTP connection, verify SPF/DKIM/DMARC, and view delivery logs.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/admin/settings/email"
+          className="px-4 py-2 bg-brandTeal-600 hover:bg-brandTeal-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 transition-colors shadow-sm"
+        >
+          <span>Open Email Hub</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
       {/* 1. Homepage Section Order Configuration */}

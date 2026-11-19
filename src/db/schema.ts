@@ -665,6 +665,33 @@ export const reelImportLogs = mysqlTable(
 );
 
 // ============================================================================
+// 11. EMAIL DELIVERY & NOTIFICATION LOGS
+// ============================================================================
+
+export const emailLogs = mysqlTable(
+  "email_logs",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    recipient: varchar("recipient", { length: 191 }).notNull(),
+    subject: varchar("subject", { length: 255 }).notNull(),
+    emailType: varchar("email_type", { length: 50 }).notNull(), // test, confirmation, welcome, daily_newsletter, breaking_alert
+    status: varchar("status", { length: 30 }).notNull().default("sent"), // sent, failed, rate_limited
+    errorMessage: text("error_message"),
+    messageId: varchar("message_id", { length: 191 }),
+    retryCount: int("retry_count").notNull().default(0),
+    metadata: json("metadata"),
+    sentAt: timestamp("sent_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    recipientIdx: index("idx_email_recipient").on(table.recipient),
+    typeIdx: index("idx_email_type").on(table.emailType),
+    statusIdx: index("idx_email_status").on(table.status),
+    sentAtIdx: index("idx_email_sent_at").on(table.sentAt),
+  })
+);
+
+// ============================================================================
 // RELATIONS
 // ============================================================================
 
