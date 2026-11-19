@@ -1,18 +1,23 @@
 import React from "react";
 import { ArticleCard, ArticleCardData } from "@/components/news/ArticleCard";
+import { HeroNewsCarousel } from "@/components/home/HeroNewsCarousel";
 import Link from "next/link";
 import { Sparkles, Globe2, ArrowUpRight, Flame } from "lucide-react";
 
 interface GeneralNewsHeroProps {
-  leadArticle: ArticleCardData | null;
+  leadArticle?: ArticleCardData | null;
+  carouselArticles?: ArticleCardData[];
   secondaryArticles: ArticleCardData[];
 }
 
 export const GeneralNewsHero: React.FC<GeneralNewsHeroProps> = ({
   leadArticle,
+  carouselArticles = [],
   secondaryArticles = [],
 }) => {
-  if (!leadArticle && secondaryArticles.length === 0) return null;
+  const slides = carouselArticles.length > 0 ? carouselArticles : leadArticle ? [leadArticle] : [];
+
+  if (slides.length === 0 && secondaryArticles.length === 0) return null;
 
   return (
     <section className="max-w-7xl mx-auto px-4 pt-4 pb-6">
@@ -48,9 +53,13 @@ export const GeneralNewsHero: React.FC<GeneralNewsHeroProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Main Hero Story */}
+        {/* Main Hero Carousel */}
         <div className="lg:col-span-8">
-          {leadArticle && <ArticleCard article={leadArticle} variant="hero" />}
+          {slides.length > 1 ? (
+            <HeroNewsCarousel articles={slides} />
+          ) : slides[0] ? (
+            <ArticleCard article={slides[0]} variant="hero" />
+          ) : null}
         </div>
 
         {/* Secondary General News Stories */}

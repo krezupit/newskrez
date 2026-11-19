@@ -118,11 +118,20 @@ export default async function HomePage() {
       ].includes(a.categorySlug)
   );
 
-  // Section 3: General News Featured Hero Articles
-  const generalHeroLead =
-    generalArticles.find((a) => a.isFeatured) || generalArticles[0] || null;
-  const generalHeroSecondary = generalArticles
-    .filter((a) => a.id !== generalHeroLead?.id)
+  // Section 3: General News Featured Hero Carousel (Dynamic Top Fresh Stories)
+  // Sort fresh articles: breaking first, then newest publishedAt
+  const sortedGeneral = [...generalArticles].sort((a, b) => {
+    if (a.isBreaking && !b.isBreaking) return -1;
+    if (!a.isBreaking && b.isBreaking) return 1;
+    const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+    const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+    return dateB - dateA;
+  });
+
+  const heroCarouselArticles = sortedGeneral.slice(0, 6);
+  const carouselIds = new Set(heroCarouselArticles.map((a) => a.id));
+  const generalHeroSecondary = sortedGeneral
+    .filter((a) => !carouselIds.has(a.id))
     .slice(0, 4);
 
   // Subcategory Partitioning for Sections 5 through 10
@@ -165,9 +174,9 @@ export default async function HomePage() {
       {/* 2. Top Advertisement Banner */}
       <AdPlacement placement="header_top" />
 
-      {/* 3. General News Featured Hero Section (Highest Visual Priority) */}
+      {/* 3. General News Featured Hero Section (Highest Visual Priority Carousel) */}
       <GeneralNewsHero
-        leadArticle={generalHeroLead}
+        carouselArticles={heroCarouselArticles}
         secondaryArticles={generalHeroSecondary}
       />
 
